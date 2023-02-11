@@ -9,6 +9,6 @@ build: server.c client.c
 clean:
 	rm -rf *.o server client *.tar.gz
 
-dist: tarball
-tarball: clean
-	tar -cvzf /tmp/$(USERID).tar.gz --exclude=./.vagrant . && mv /tmp/$(USERID).tar.gz .
+dist: zip
+zip: clean
+	zip ${USERID}.zip server.c client.c Makefile

@@ -7,9 +7,9 @@ This is the repo for Winter 2023 cs118 project 2.
 This provides a couple make targets for things.
 By default (all target), it makes the `server` and `client` executables.
 
-It provides a `clean` target, and `tarball` target to create the submission file as well.
+It provides a `clean` target, and `zip` target to create the submission file as well.
 
-You will need to modify the `Makefile` USERID to add your userid for the `.tar.gz` turn-in at the top of the file.
+You will need to modify the `Makefile` USERID to add your userid for the `.zip` turn-in at the top of the file.
 
 ## Academic Integrity Note
 

@@ -79,12 +79,14 @@ int isTimeout(double end) {
 
 int main (int argc, char *argv[])
 {
-    if (argc != 2) {
-        perror("ERROR: incorrect number of arguments\n");
+    if (argc != 3) {
+        perror("ERROR: incorrect number of arguments\n"
+               "Please use command \"./server <PORT> <ISN>\"\n");
         exit(1);
     }
 
     unsigned int servPort = atoi(argv[1]);
+    unsigned short initialSeqNum = atoi(argv[2]);
 
     // =====================================
     // Socket Setup
@@ -111,17 +113,19 @@ int main (int argc, char *argv[])
     //       efficient in real programs but considered acceptable in this
     //       project.
     //       Optionally, you could also consider adding a timeout to the socket
-    //       using setsockopt with SO_RCVTIMEO instead.
+    //       using setsockopt with SOq_RCVTIMEO instead.
     fcntl(sockfd, F_SETFL, O_NONBLOCK);
 
     // =====================================
 
-    unsigned short seqNum = (rand() * rand()) % MAX_SEQN;
 
     for (int i = 1; ; i++) {
         // =====================================
         // Establish Connection: This procedure is provided to you directly and
         // is already working.
+
+        // For testing, we reset the sequence number to the initial sequence number (ISN) for all connections.
+        unsigned short seqNum = initialSeqNum;
 
         int n;
 
