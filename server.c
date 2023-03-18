@@ -212,6 +212,16 @@ int main (int argc, char *argv[])
 
                     break;
                 }
+
+                if(recvpkt.seqnum != cliSeqNum) {
+                    buildPkt(&ackpkt, seqNum, cliSeqNum, 0, 0, 0, 1, 0, NULL);
+                } else {
+                    fwrite(recvpkt.payload, 1, recvpkt.length, fp);
+                    cliSeqNum = (recvpkt.seqnum + recvpkt.length) % MAX_SEQN;
+                    buildPkt(&ackpkt, seqNum, cliSeqNum, 0, 0, 1, 0, 0, NULL);
+                }
+                printSend(&ackpkt, 0);
+                sendto(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr*) &cliaddr, cliaddrlen);
             }
         }
 

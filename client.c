@@ -201,6 +201,7 @@ int main (int argc, char *argv[])
     buildPkt(&pkts[0], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 1, m, buf);
 
     e = 1;
+    int prevRead = m;
 
     // =====================================
     // *** TODO: Implement the rest of reliable transfer in the client ***
@@ -211,8 +212,81 @@ int main (int argc, char *argv[])
     //       handling data loss.
     //       Only for demo purpose. DO NOT USE IT in your final submission
     while (1) {
+        //sending packets
+
+        while(!full) {
+            m = fread(buf, 1, PAYLOAD_SIZE, fp);
+            if(m <= 0) break;
+            else {
+                //update seqNum
+                seqNum = (seqNum + prevRead) % MAX_SEQN;
+
+                //build and send packet
+                buildPkt(&pkts[e], seqNum, 0, 0, 0, 0 , 0, m, buf);                                                                                                                                                                                                                 
+                printSend(&pkts[e], 0);
+                sendto(sockfd, &pkts[e], PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
+                
+                //update e
+                e = (e + 1) % WND_SIZE;
+
+                //timer
+                timer = setTimer();
+
+                prevRead = m;
+            }
+
+            if(e == s) full = 1;
+            else full = 0;
+
+            if(m <= 0 && ackpkt.acknum == seqNum + prevRead) break;
+        }
+
+        if(m <= 0 && ackpkt.acknum == seqNum + prevRead) break;
+        
+        //checking for acks
         n = recvfrom(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr *) &servaddr, (socklen_t *) &servaddrlen);
-        if (n > 0) {
+        if(n > 0) {
+            printRecv(&ackpkt);
+            if (ackpkt.dupack == 0) {
+                //loop thru buffer and check acknum to seqnum?
+                while(pkts[s].seqnum < ackpkt.acknum) { //possibly wrong... 
+                    s = (s+1) % WND_SIZE;
+                    
+                    if(e == s) full = 1;
+                    else full = 0;
+                }
+            }
+            s = (s+1) % WND_SIZE;
+
+            if(e == s) full = 1;
+            else full = 0;        
+        }
+
+        
+
+        if(m <= 0 && ackpkt.acknum == seqNum + prevRead) {
+            break;
+        }
+
+        //Handle timeout
+        if (isTimeout(timer)) {
+            printTimeout(&pkts[s]);
+            int i = s;
+            while(1) {
+                printSend(&pkts[i], 1);
+                sendto(sockfd, &pkts[i], PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
+                i = (i+1) % WND_SIZE;
+
+                if(i == e) break;
+
+                if(m <= 0 && ackpkt.acknum == seqNum + prevRead) {
+                    break;
+                }
+            }
+            timer = setTimer();
+        }
+
+        if(m <= 0 && ackpkt.acknum == seqNum + prevRead) {
             break;
         }
     }
