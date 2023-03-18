@@ -197,6 +197,7 @@ int main (int argc, char *argv[])
         //       without handling data loss.
         //       Only for demo purpose. DO NOT USE IT in your final submission
         struct packet recvpkt;
+        seqNum = ackpkt.seqnum;
 
         while(1) {
             n = recvfrom(sockfd, &recvpkt, PKT_SIZE, 0, (struct sockaddr *) &cliaddr, (socklen_t *) &cliaddrlen);
@@ -222,6 +223,8 @@ int main (int argc, char *argv[])
                 }
                 printSend(&ackpkt, 0);
                 sendto(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr*) &cliaddr, cliaddrlen);
+
+                //printf("acknum: %d ; cliSeqNum = %d ; recvpkt length: %d \n", ackpkt.acknum, cliSeqNum, recvpkt.length);
             }
         }
 
