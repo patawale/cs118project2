@@ -213,7 +213,7 @@ int main (int argc, char *argv[])
     //       Only for demo purpose. DO NOT USE IT in your final submission
 
     int prevRead = m;
-    int seqNext = pkts[0].seqnum + pkts[0].length;
+    int seqNext = pkts[0].seqnum + PAYLOAD_SIZE;
 
     int currIndex;
     int start = s;
@@ -242,14 +242,13 @@ int main (int argc, char *argv[])
             }
         }
 
-        while(1){
+        while(end - start < WND_SIZE){
             n = fread(buf, 1, PAYLOAD_SIZE, fp);
 
             if (n <= 0) break;
             else {
-                m = n;
                 seqNum = (seqNum + PAYLOAD_SIZE) % MAX_SEQN;
-
+                m = n;
                 buildPkt(&pkts[e], seqNum, 0, 0, 0, 0, 0, m, buf);
                 printSend(&pkts[e], 0);
                 sendto(sockfd, &pkts[e], PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
@@ -260,7 +259,7 @@ int main (int argc, char *argv[])
             end++;
 
             if (n <= 0 && ackpkt.acknum == seqNum + m) break;
-            if(end - start < WND_SIZE) break;
+            // if(end - start < WND_SIZE) break;
         }
 
         if (n <= 0 && ackpkt.acknum == seqNum + m) break;
@@ -268,8 +267,10 @@ int main (int argc, char *argv[])
         if (isTimeout(timer)) {
             printTimeout(&pkts[s]);
 
-            full = (e == s) ? 1 : 0;
-            if (full) {
+            if(e == s) full = 1;
+            else full = 0;
+
+            if (full == 1) {
                 for (int q = s; q < e + WND_SIZE; q++) {
                     printSend(&pkts[q % WND_SIZE], 1);
                     sendto(sockfd, &pkts[q % WND_SIZE], PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
@@ -283,6 +284,8 @@ int main (int argc, char *argv[])
             }
             timer = setTimer();
         }
+
+        if (n <= 0 && ackpkt.acknum == seqNum + m) break;
     }
 
     // while (1) {
