@@ -285,7 +285,7 @@ int main (int argc, char *argv[])
             timer = setTimer();
         }
 
-        if (n <= 0 && ackpkt.acknum == seqNum + m) break;
+        // if (n <= 0 && ackpkt.acknum == seqNum + m) break;
     }
 
     // while (1) {
